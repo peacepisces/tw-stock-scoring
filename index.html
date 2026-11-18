@@ -1,0 +1,221 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>台股評分方法說明</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: single reading column, ledger-style tables, one stacked score bar as the worked example */
+:root{
+  --bg:#f5f7f8; --surface:#ffffff; --fg:#1b2428; --muted:#5b6a71; --line:#d8e0e3;
+  --accent:#0f6b6e; --accent-soft:#dcefee;
+  --c1:#0f6b6e; --c2:#3a8fb7; --c3:#7a6fb0; --c4:#c08a2e; --c5:#b85a4a;
+  --warn-bg:#fbf3e4; --warn-fg:#7a5310;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121a1d; --surface:#1a2428; --fg:#e4ecee; --muted:#9aabb2; --line:#2c3a3f;
+  --accent:#5cc3c4; --accent-soft:#1d3a3b;
+  --c1:#4fb8b9; --c2:#6fb4d8; --c3:#a89ce0; --c4:#e0b05a; --c5:#e08a78;
+  --warn-bg:#33291a; --warn-fg:#efc77e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121a1d; --surface:#1a2428; --fg:#e4ecee; --muted:#9aabb2; --line:#2c3a3f;
+  --accent:#5cc3c4; --accent-soft:#1d3a3b;
+  --c1:#4fb8b9; --c2:#6fb4d8; --c3:#a89ce0; --c4:#e0b05a; --c5:#e08a78;
+  --warn-bg:#33291a; --warn-fg:#efc77e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.75;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{text-wrap:balance;line-height:1.35;margin:0}
+h1{font-size:2rem;font-weight:700;letter-spacing:.02em}
+h2{font-size:1.35rem;font-weight:700;padding-bottom:8px;border-bottom:2px solid var(--accent)}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+section{display:flex;flex-direction:column;gap:14px;min-width:0}
+.eyebrow{font-size:.8rem;letter-spacing:.12em;color:var(--accent);font-weight:700}
+.lede{color:var(--muted);font-size:1.05rem}
+.meta{font-size:.85rem;color:var(--muted)}
+.callout{background:var(--accent-soft);border-radius:10px;padding:14px 18px}
+.warn{background:var(--warn-bg);color:var(--warn-fg);border-radius:10px;padding:14px 18px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.93rem}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-size:.8rem;letter-spacing:.06em;color:var(--muted);font-weight:500;background:var(--bg)}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;font-size:.78rem;padding:1px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.src-a{color:var(--c1);border-color:var(--c1)} .src-b{color:var(--c3);border-color:var(--c3)} .src-c{color:var(--c5);border-color:var(--c5)}
+code,.f{font-family:var(--mono);font-size:.9em;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+ul,ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.bar{display:flex;height:34px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.bar span{display:block;height:100%}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 18px;font-size:.9rem}
+.legend div{display:flex;gap:8px;align-items:baseline;min-width:0}
+.sw{width:11px;height:11px;border-radius:3px;flex:none;transform:translateY(1px)}
+.calc{font-family:var(--mono);font-size:.88rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:pre;line-height:1.7}
+footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+</style>
+
+</head><body><main>
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <div class="eyebrow">商業解碼 · 台股個股評分</div>
+    <h1>台股評分方法說明</h1>
+    <p class="lede">這份說明交代評分系統怎麼替上市櫃股票打 0～100 分：用了哪些資料、每一項怎麼算、哪些來自課程、哪些是暫定做法。</p>
+    <p class="meta">資料截至 2026-11-18 · 評分 881 檔一般股、16 檔金融股通過關卡 · <a href="report.html" style="color:var(--accent)">查看完整評分報告 →</a></p>
+  </header>
+
+  <section>
+    <h2>一句話說明</h2>
+    <p>這是一個<strong>「好公司篩選器」加上「暫時的貴不貴參考」</strong>。80% 的分數只看財報，判斷公司本身賺錢的能力；20% 看目前股價相對它自己過去是貴還是便宜。</p>
+    <p class="callout">報告裡<strong>沒有目標價或合理價</strong>，只有分數與排名。分數高代表「值得深入研究」，不是買進建議。</p>
+  </section>
+
+  <section>
+    <h2>資料來源</h2>
+    <ul>
+      <li><strong>財報與股利：</strong>FinMind 開放資料，包含綜合損益表、資產負債表、現金股利，最多取近 10 年。</li>
+      <li><strong>本益比、股價淨值比：</strong>FinMind 每日資料，取近 5 年。</li>
+      <li><strong>成交額：</strong>近 20 日平均日成交額至少 1,000 萬元才列入評分。成交額只決定是否列入，不影響分數。</li>
+      <li><strong>排除：</strong>ETF、存託憑證、資料不足 5 年的公司。</li>
+      <li><strong>沒有用到：</strong>新聞、分析師意見、技術面，也沒有任何人工主觀加減分。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>總分由 5 項組成</h2>
+    <p>每一項先換算成 0～100 分，再依權重加權平均。某一項算不出來（例如公司沒有擴張，無法計算再投資效率）時，該項不列入，由其他項目的權重重新分配。</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>項目</th><th class="num">權重</th><th>看什麼</th><th>出處</th></tr></thead>
+      <tbody>
+        <tr><td>經濟性（ROIC）</td><td class="num">35</td><td>公司每投入 100 元能賺回多少，扣掉資金成本 8% 後還剩多少</td><td><span class="tag src-a">課程公式</span></td></tr>
+        <tr><td>持續性</td><td class="num">20</td><td>高 ROIC 能不能年年維持</td><td><span class="tag src-a">課程公式</span></td></tr>
+        <tr><td>護城河推估</td><td class="num">15</td><td>毛利率夠不夠高、夠不夠穩</td><td><span class="tag src-b">課程概念・自訂算法</span></td></tr>
+        <tr><td>再投資效率</td><td class="num">10</td><td>新投入的資本賺回多少</td><td><span class="tag src-b">課程概念・自訂算法</span></td></tr>
+        <tr><td>估值（暫代）</td><td class="num">20</td><td>本益比、股價淨值比和自己過去 5 年比</td><td><span class="tag src-c">暫代・非課程內容</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="meta">只有「估值」會隨股價變動。前 4 項共 80 分純粹來自財報，股價漲跌不會改變這部分。</p>
+  </section>
+
+  <section>
+    <h2>每一項怎麼算</h2>
+
+    <h3>1. 經濟性（ROIC）</h3>
+    <ul>
+      <li><span class="f">ROIC = 稅後營業利益 ÷ 平均投入資本</span></li>
+      <li>稅後營業利益 = 營業利益 × (1 − 有效稅率)。稅率限制在 0～35%，虧損年度用 20%。</li>
+      <li>投入資本 = 股東權益 + 有息負債 − 超額現金。營收 2% 以內的現金視為營運必要，超過的部分才扣除。</li>
+      <li>取近 5～10 年每年的 ROIC，用<strong>中位數</strong>減掉資金成本 8%。超過 8% 的部分達 10 個百分點以上就拿滿分，0 以下為 0 分。</li>
+    </ul>
+
+    <h3>2. 持續性</h3>
+    <ul>
+      <li>一半看<strong>過關率</strong>：ROIC 超過 8% 的年數占比。</li>
+      <li>一半看<strong>穩定度</strong>：扣掉長期趨勢之後，ROIC 每年上下震盪的幅度。震盪越小分數越高。</li>
+      <li>先扣趨勢的原因：一路變好（例如聯發科 4.7% → 42.8%）代表競爭力變強，不應該跟景氣股一樣被當成不穩定。</li>
+    </ul>
+
+    <h3>3. 護城河推估</h3>
+    <ul>
+      <li>原始值 = 毛利率中位數 − 毛利率的標準差。毛利率高代表有定價能力，波動小代表優勢穩定。</li>
+      <li>採<strong>相對排名</strong>：在所有評分股票中排第幾百分位，就得幾分。</li>
+      <li>這是用數字代替人工判斷。課程第 3 章之後，預計再加上人工判斷護城河類型。</li>
+    </ul>
+
+    <h3>4. 再投資效率</h3>
+    <ul>
+      <li>近 5 年的增量 ROIC = 稅後營業利益的增加 ÷ 投入資本的增加，再減掉 8%。</li>
+      <li>超過 8% 的部分達 15 個百分點以上就拿滿分。</li>
+      <li>投入資本沒有增加的公司算不出這一項，會標示「未擴張」，這一項不計分。</li>
+    </ul>
+
+    <h3>5. 估值（暫代）</h3>
+    <ul>
+      <li>把目前的本益比和股價淨值比，各自跟這家公司近 5 年的每日數值比較，算出百分位。</li>
+      <li>分數 = 100 − 百分位。比過去 90% 的時間都貴，就只拿約 10 分。</li>
+      <li>本益比為負數或超過 200 倍時視為無效。資料超過 14 天沒更新也不計分。</li>
+    </ul>
+    <p class="warn">估值是暫代做法。它只回答「比自己過去貴還是便宜」，沒有回答「現在的價格隱含了什麼期望」。課程第 4 章的「反向期望」方法出來後，會換掉這一項。</p>
+  </section>
+
+  <section>
+    <h2>實例：聯發科 73.1 分</h2>
+    <div class="bar" role="img" aria-label="聯發科總分組成：經濟性 38.9、持續性 17.0、護城河 15.1、估值 2.0，合計 73.1 分">
+      <span style="width:38.9%;background:var(--c1)"></span>
+      <span style="width:17.0%;background:var(--c2)"></span>
+      <span style="width:15.1%;background:var(--c3)"></span>
+      <span style="width:2.0%;background:var(--c5)"></span>
+    </div>
+    <div class="legend">
+      <div><span class="sw" style="background:var(--c1)"></span><span>經濟性 100 分 → 貢獻 38.9</span></div>
+      <div><span class="sw" style="background:var(--c2)"></span><span>持續性 76.7 分 → 貢獻 17.0</span></div>
+      <div><span class="sw" style="background:var(--c3)"></span><span>護城河 90.8 分 → 貢獻 15.1</span></div>
+      <div><span class="sw" style="background:var(--c5)"></span><span>估值 9.2 分 → 貢獻 2.0</span></div>
+    </div>
+    <div class="calc">再投資：未擴張，不計分 → 剩下權重 35 + 20 + 15 + 20 = 90
+總分 = (35×100 + 20×76.7 + 15×90.8 + 20×9.2) ÷ 90 = 73.1</div>
+    <ul>
+      <li><strong>ROIC 中位數 23.7%</strong>，比資金成本高 15.7 個百分點，經濟性拿滿分。</li>
+      <li><strong>持續性 76.7 分：</strong>9 年中有 78% 的年份 ROIC 超過 8%，2017、2018 年沒過。趨勢每年增加 5.0 個百分點，屬於轉強。</li>
+      <li><strong>護城河 90.8 分：</strong>毛利率中位數 46.9%，標準差只有 4.7 個百分點。</li>
+      <li><strong>估值 9.2 分：</strong>本益比 61.8 倍，比過去 5 年 92% 的時間都貴，這是總分沒有更高的主因。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>其他參考例子</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>股票</th><th class="num">總分</th><th class="num">經濟性</th><th class="num">持續性</th><th class="num">護城河</th><th class="num">再投資</th><th class="num">估值</th><th>標籤</th></tr></thead>
+      <tbody>
+        <tr><td>8464 億豐</td><td class="num">95.4</td><td class="num">100</td><td class="num">94.6</td><td class="num">95.4</td><td class="num">100</td><td class="num">85.7</td><td>複利型</td></tr>
+        <tr><td>2330 台積電</td><td class="num">85.1</td><td class="num">100</td><td class="num">92.2</td><td class="num">94.6</td><td class="num">100</td><td class="num">37.6</td><td>複利型</td></tr>
+        <tr><td>2454 聯發科</td><td class="num">73.1</td><td class="num">100</td><td class="num">76.7</td><td class="num">90.8</td><td class="num">—</td><td class="num">9.2</td><td>一般</td></tr>
+        <tr><td>3008 大立光</td><td class="num">68.7</td><td class="num">100</td><td class="num">90.3</td><td class="num">95.9</td><td class="num">0</td><td class="num">6.3</td><td>一般</td></tr>
+        <tr><td>2603 長榮</td><td class="num">34.9</td><td class="num">64.4</td><td class="num">27.8</td><td class="num">6.4</td><td class="num">11.8</td><td class="num">23.2</td><td>景氣循環型</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li><strong>大立光：</strong>ROIC 仍有 35%，但從 100% 一路降到 26%，近 5 年的增量 ROIC 為負，所以再投資拿 0 分。</li>
+      <li><strong>長榮：</strong>ROIC 從 0.5% 衝到 100% 又跌回來，持續性與護城河都很低，典型的景氣股。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>公司類型標籤</h2>
+    <p>標籤只是分類，<strong>不影響總分</strong>。依下列順序判斷，符合第一個就停止：</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>標籤</th><th>條件</th></tr></thead>
+      <tbody>
+        <tr><td>可能的價值陷阱</td><td>估值分數 ≥ 70（看起來便宜），而且 ROIC 中位數低於 8%，或近 3 年 ROIC 比之前低 30% 以上</td></tr>
+        <tr><td>景氣循環型</td><td>扣掉長期趨勢後，ROIC 的震盪幅度 ≥ 平均值的 0.5 倍</td></tr>
+        <tr><td>複利型</td><td>ROIC 中位數 ≥ 13%、至少 80% 的年份超過 8%、再投資報酬超過 8%，且投入資本有成長</td></tr>
+        <tr><td>一般</td><td>以上都不符合</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>金融股另外評分</h2>
+    <p>銀行、保險的財報沒有營業利益和毛利，不適用 ROIC，因此另外計算：</p>
+    <ul>
+      <li><strong>關卡：</strong>ROE 中位數 ≥ 8%、ROA 中位數 ≥ 0.6%、連續 10 年發放現金股利，三項都通過才評分。</li>
+      <li><strong>分數：</strong>ROE 佔 60%，股價淨值比的便宜程度佔 40%（和自己過去 5 年比）。</li>
+      <li>配息率超出 50%～70% 只標註提醒，不扣分。</li>
+      <li>金融股與一般股的分數算法不同，<strong>兩邊分數不能互相比較</strong>。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>暫定的設定與限制</h2>
+    <ul>
+      <li>資金成本 8%、各項權重（35 / 20 / 15 / 10 / 20）、標籤門檻，都是暫定數字，課程沒有規定。這些數字可以在設定檔中直接調整。</li>
+      <li>護城河只用毛利率推估，看不出品牌、網路效應、轉換成本等質化優勢。</li>
+      <li>估值只和公司自己的歷史比，產業整體重新定價時（例如 AI 題材）會一律顯得偏貴。</li>
+      <li>財報資料最晚只到最近一次公布的年度，剛轉虧或剛轉盈的公司反應會比較慢。</li>
+      <li>尚未做回測。這套分數過去是否真的選得出好股票，要等下一步回測才知道。</li>
+    </ul>
+  </section>
+
+  <footer>本說明依 2026-11-18 的評分結果撰寫。分數僅供研究參考，不構成任何投資建議。</footer>
+</main>
+</body></html>
